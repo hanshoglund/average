@@ -38,6 +38,9 @@ import Data.VectorSpace
 --
 -- This average encapsulates length and sum in a space efficient form.
 --
+-- >>> average $ foldMap averageDatum [1,2,3]
+-- 2.0
+--
 data Average a = Average { averageWeight :: !Int, averageSum :: !a }
   deriving (Show, Typeable, Functor)
 
