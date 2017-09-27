@@ -19,8 +19,8 @@
 module Data.Monoid.Average (
     Average(..),
     averageDatum,
-    average,
-    maybeAverage
+    getAverage,
+    mayAverage
   ) where
 
 import Prelude hiding ((**))
@@ -38,7 +38,7 @@ import Data.VectorSpace
 --
 -- This average encapsulates length and sum in a space efficient form.
 --
--- >>> average $ foldMap averageDatum [1,2,3]
+-- >>> getAverage $ foldMap averageDatum [1,2,3]
 -- 2.0
 --
 data Average a = Average { averageWeight :: !Int, averageSum :: !a }
@@ -48,10 +48,10 @@ averageDatum :: a -> Average a
 averageDatum = Average 1
 
 instance (Fractional a, Eq a) => Eq (Average a) where
-  a == b = average a == average b
+  a == b = getAverage a == getAverage b
 
 instance (Fractional a, Ord a) => Ord (Average a) where
-  a `compare` b = average a `compare` average b
+  a `compare` b = getAverage a `compare` getAverage b
 
 instance Num n => Semigroup (Average n) where
   Average lx nx <> Average ly ny = Average (lx + ly) (nx + ny)
@@ -75,10 +75,10 @@ instance Arbitrary a => Arbitrary (Average a) where
 -}
 
 -- | Return the average of all monoidal components. If given 'mempty', return zero.
-average :: Fractional a => Average a -> a
-average = fromMaybe 0 . maybeAverage
+getAverage :: Fractional a => Average a -> a
+getAverage = fromMaybe 0 . mayAverage
 
 -- | Return the average of all monoidal components. If given 'mempty', return 'Nothing'.
-maybeAverage :: Fractional a => Average a -> Maybe a
-maybeAverage (Average 0 _) = Nothing
-maybeAverage (Average l x) = Just $ x / fromIntegral l
+mayAverage :: Fractional a => Average a -> Maybe a
+mayAverage (Average 0 _) = Nothing
+mayAverage (Average l x) = Just $ x / fromIntegral l
