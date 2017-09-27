@@ -39,10 +39,16 @@ import Data.VectorSpace
 -- This average encapsulates length and sum in a space efficient form.
 --
 data Average a = Average { averageWeight :: !Int, averageSum :: !a }
-  deriving (Show, Eq, Ord, Typeable, Functor)
+  deriving (Show, Typeable, Functor)
 
 averageDatum :: a -> Average a
 averageDatum = Average 1
+
+instance (Fractional a, Eq a) => Eq (Average a) where
+  a == b = average a == average b
+
+instance (Fractional a, Ord a) => Ord (Average a) where
+  a `compare` b = average a `compare` average b
 
 instance Num n => Semigroup (Average n) where
   Average lx nx <> Average ly ny = Average (lx + ly) (nx + ny)
