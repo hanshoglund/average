@@ -1,13 +1,13 @@
 
 name:               average
-version:            0.6
+version:            1.0
 cabal-version:      >= 1.10
 author:             Hans Hoglund
 maintainer:         Hans Hoglund <hans@hanshoglund.se>
 license:            BSD3
 license-file:       COPYING
 synopsis:           An average (arithmetic mean) monoid.
-category:           
+category:
 tested-with:        GHC
 build-type:         Simple
 
