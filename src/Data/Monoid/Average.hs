@@ -18,6 +18,7 @@
 
 module Data.Monoid.Average (
     Average(..),
+    averageDatum,
     average,
     maybeAverage
   ) where
@@ -37,7 +38,7 @@ import Data.VectorSpace
 --
 -- This average encapsulates length and sum in a space efficient form.
 --
-data Average a = Average !Int !a
+data Average a = Average { averageWeight :: !Int, averageSum :: !a }
   deriving (Show, Eq, Ord, Typeable, Functor)
 
 averageDatum :: a -> Average a
