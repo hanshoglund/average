@@ -25,6 +25,17 @@ main =
   hspec $
     describe "Average" $ do
       testBatch $ monoid (undefined :: Average Int)
+      describe "laws for: Num" $ do
+        describe "addition" $ do
+          it "associativity" . property $ isAssoc @(Average Int) (+)
+          it "commutative" . property $ isCommut @(Average Int) (+)
+          it "left identity" . property $ leftId @(Average Int) (+) 0
+          it "right identity" . property $ rightId @(Average Int) (+) 0
+        describe "multiplication" $ do
+          it "associativity" . property $ isAssoc @(Average Int) (*)
+          it "commutative" . property $ isCommut @(Average Int) (*)
+          it "left identity" . property $ leftId @(Average Int) (*) 1
+          it "right identity" . property $ rightId @(Average Int) (*) 1
       describe "laws for: vector space" $ do
         it "associativity" . property $ isAssoc @(Average Int) (^+^)
         it "commutative" . property $ isCommut @(Average Int) (^+^)
