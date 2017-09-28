@@ -11,10 +11,13 @@ import Test.Hspec
 import Test.Hspec.Checkers
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
-import Test.QuickCheck.Classes (monoid)
+import Test.QuickCheck.Classes (applicative, functor, monoid)
 
 
 instance Arbitrary (Average Int) where
+  arbitrary = Average <$> arbitrary
+
+instance Arbitrary (Average (Int -> Int)) where
   arbitrary = Average <$> arbitrary
 
 instance EqProp (Average Int) where
@@ -25,6 +28,8 @@ main =
   hspec $
     describe "Average" $ do
       testBatch $ monoid (undefined :: Average Int)
+      testBatch $ functor (undefined :: Average (Int, Int, Int))
+      testBatch $ applicative (undefined :: Average (Int, Int, Int))
       describe "laws for: Num" $ do
         describe "addition" $ do
           it "associativity" . property $ isAssoc @(Average Int) (+)
