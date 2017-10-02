@@ -18,7 +18,8 @@
 module Data.Monoid.Average (
     Average(..),
     getAverage,
-    mayAverage
+    mayAverage,
+    averageDatum
   ) where
 
 import Prelude hiding ((**))
@@ -41,6 +42,9 @@ import Data.Typeable
 --
 data Average a = Average { averageWeight :: !Int, averageSum :: !a }
   deriving (Show, Typeable, Functor)
+
+averageDatum :: n -> Average n
+averageDatum = Average 1
 
 instance (Fractional a, Eq a) => Eq (Average a) where
   a == b = getAverage a == getAverage b
