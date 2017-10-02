@@ -29,29 +29,8 @@ main =
     describe "Average" $ do
       testBatch $ monoid (undefined :: Average Int)
       testBatch $ functor (undefined :: Average (Int, Int, Int))
-      testBatch $ applicative (undefined :: Average (Int, Int, Int))
-      describe "laws for: Num" $ do
-        describe "addition" $ do
-          it "associativity" . property $ isAssoc @(Average Int) (+)
-          it "commutative" . property $ isCommut @(Average Int) (+)
-          it "left identity" . property $ leftId @(Average Int) (+) 0
-          it "right identity" . property $ rightId @(Average Int) (+) 0
-        describe "multiplication" $ do
-          it "associativity" . property $ isAssoc @(Average Int) (*)
-          it "commutative" . property $ isCommut @(Average Int) (*)
-          it "left identity" . property $ leftId @(Average Int) (*) 1
-          it "right identity" . property $ rightId @(Average Int) (*) 1
-      describe "laws for: vector space" $ do
+      describe "laws for: additive group" $ do
         it "associativity" . property $ isAssoc @(Average Int) (^+^)
         it "commutative" . property $ isCommut @(Average Int) (^+^)
         it "left identity" . property $ leftId @(Average Int) (^+^) zeroV
         it "right identity" . property $ rightId @(Average Int) (^+^) zeroV
-        describe "closure" $ do
-          it "distributive: c u v" . property $ \(c, u, v :: Average Int) ->
-            c *^ (u ^+^ v) =-= (c *^ u) ^+^ (c *^ v)
-          it "distributive: c d v" . property $ \(c, d, v :: Average Int) ->
-            (c ^+^ d) *^ v =-= c *^ v ^+^ d *^ v
-          it "associativity" . property $ \(c, d, v :: Average Int) ->
-            c *^ (d *^ v) =-= (c * d) *^ v
-          it "unitary" . property $ \(v :: Average Int) ->
-            1 *^ v =-= v
