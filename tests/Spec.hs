@@ -6,12 +6,11 @@ module Main (main) where
 
 import Data.AdditiveGroup
 import Data.Monoid.Average
-import Data.VectorSpace
 import Test.Hspec
 import Test.Hspec.Checkers
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
-import Test.QuickCheck.Classes (applicative, functor, monoid)
+import Test.QuickCheck.Classes (functor, monoid)
 
 
 instance Arbitrary (Average Int) where
@@ -34,3 +33,5 @@ main =
         it "commutative" . property $ isCommut @(Average Int) (^+^)
         it "left identity" . property $ leftId @(Average Int) (^+^) zeroV
         it "right identity" . property $ rightId @(Average Int) (^+^) zeroV
+        it "left inverse" . property $ \(a :: Average Int) -> (negateV a) ^+^ a =-= zeroV
+        it "right inverse" . property $ \(a :: Average Int) -> a ^+^ (negateV a) =-= zeroV
