@@ -11,25 +11,23 @@ import Test.Hspec
 import Test.Hspec.Checkers
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
-import Test.QuickCheck.Classes (applicative, functor, monoid)
+import Test.QuickCheck.Classes (monoid)
 
 
 instance Arbitrary (Average Rational) where
-  arbitrary = Average <$> arbitrary
+  arbitrary = Average <$> (getPositive <$> arbitrary) <*> arbitrary
 
 instance Arbitrary (Average (Rational -> Rational)) where
-  arbitrary = Average <$> arbitrary
+  arbitrary = Average <$> (getPositive <$> arbitrary) <*> arbitrary
 
 instance EqProp (Average Rational) where
-  Average l =-= Average m = (l==m) =-= True
+  Average wx xΣ =-= Average wy yΣ = (wx==wy, xΣ==yΣ) =-= (True, True)
 
 main :: IO ()
 main =
   hspec $
     describe "Average" $ do
       testBatch $ monoid (undefined :: Average Rational)
-      testBatch $ functor (undefined :: Average (Rational, Rational, Rational))
-      testBatch $ applicative (undefined :: Average (Rational, Rational, Rational))
       describe "laws for: Num" $ do
         describe "addition" $ do
           it "associativity" . property $ isAssoc @(Average Rational) (+)
