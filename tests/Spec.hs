@@ -14,44 +14,46 @@ import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes (applicative, functor, monoid)
 
 
-instance Arbitrary (Average Int) where
+instance Arbitrary (Average Rational) where
   arbitrary = Average <$> arbitrary
 
-instance Arbitrary (Average (Int -> Int)) where
+instance Arbitrary (Average (Rational -> Rational)) where
   arbitrary = Average <$> arbitrary
 
-instance EqProp (Average Int) where
-  x =-= y = getAverage (fmap fromIntegral x :: Average Double) =-= getAverage (fmap fromIntegral y)
+instance EqProp (Average Rational) where
+  x =-= y
+     = (getAverage x==getAverage y) =-= True
+          -- for some reason, checkers <0.5 doesn't support `Rational` or even `Integer`.
 
 main :: IO ()
 main =
   hspec $
     describe "Average" $ do
-      testBatch $ monoid (undefined :: Average Int)
-      testBatch $ functor (undefined :: Average (Int, Int, Int))
-      testBatch $ applicative (undefined :: Average (Int, Int, Int))
+      testBatch $ monoid (undefined :: Average Rational)
+      testBatch $ functor (undefined :: Average (Rational, Rational, Rational))
+      testBatch $ applicative (undefined :: Average (Rational, Rational, Rational))
       describe "laws for: Num" $ do
         describe "addition" $ do
-          it "associativity" . property $ isAssoc @(Average Int) (+)
-          it "commutative" . property $ isCommut @(Average Int) (+)
-          it "left identity" . property $ leftId @(Average Int) (+) 0
-          it "right identity" . property $ rightId @(Average Int) (+) 0
+          it "associativity" . property $ isAssoc @(Average Rational) (+)
+          it "commutative" . property $ isCommut @(Average Rational) (+)
+          it "left identity" . property $ leftId @(Average Rational) (+) 0
+          it "right identity" . property $ rightId @(Average Rational) (+) 0
         describe "multiplication" $ do
-          it "associativity" . property $ isAssoc @(Average Int) (*)
-          it "commutative" . property $ isCommut @(Average Int) (*)
-          it "left identity" . property $ leftId @(Average Int) (*) 1
-          it "right identity" . property $ rightId @(Average Int) (*) 1
+          it "associativity" . property $ isAssoc @(Average Rational) (*)
+          it "commutative" . property $ isCommut @(Average Rational) (*)
+          it "left identity" . property $ leftId @(Average Rational) (*) 1
+          it "right identity" . property $ rightId @(Average Rational) (*) 1
       describe "laws for: vector space" $ do
-        it "associativity" . property $ isAssoc @(Average Int) (^+^)
-        it "commutative" . property $ isCommut @(Average Int) (^+^)
-        it "left identity" . property $ leftId @(Average Int) (^+^) zeroV
-        it "right identity" . property $ rightId @(Average Int) (^+^) zeroV
+        it "associativity" . property $ isAssoc @(Average Rational) (^+^)
+        it "commutative" . property $ isCommut @(Average Rational) (^+^)
+        it "left identity" . property $ leftId @(Average Rational) (^+^) zeroV
+        it "right identity" . property $ rightId @(Average Rational) (^+^) zeroV
         describe "closure" $ do
-          it "distributive: c u v" . property $ \(c, u, v :: Average Int) ->
+          it "distributive: c u v" . property $ \(c, u, v :: Average Rational) ->
             c *^ (u ^+^ v) =-= (c *^ u) ^+^ (c *^ v)
-          it "distributive: c d v" . property $ \(c, d, v :: Average Int) ->
+          it "distributive: c d v" . property $ \(c, d, v :: Average Rational) ->
             (c ^+^ d) *^ v =-= c *^ v ^+^ d *^ v
-          it "associativity" . property $ \(c, d, v :: Average Int) ->
+          it "associativity" . property $ \(c, d, v :: Average Rational) ->
             c *^ (d *^ v) =-= (c * d) *^ v
-          it "unitary" . property $ \(v :: Average Int) ->
+          it "unitary" . property $ \(v :: Average Rational) ->
             1 *^ v =-= v
