@@ -26,7 +26,6 @@ import Prelude hiding ((**))
 
 import Control.Applicative
 import Control.Monad
-import Data.AdditiveGroup
 import Data.Function (on)
 import Data.Maybe
 import Data.Semigroup
@@ -58,11 +57,6 @@ instance Num n => Semigroup (Average n) where
 instance Num n => Monoid (Average n) where
   mappend = (<>)
   mempty = Average 0 0
-
-instance AdditiveGroup a => AdditiveGroup (Average a) where
-  zeroV = Average 0 zeroV
-  x ^+^ y = Average (on (+) averageWeight x y) (on (^+^) averageSum x y)
-  negateV = fmap negateV
 
 -- | Return the average of all monoidal components. If given 'mempty', return zero.
 getAverage :: Fractional a => Average a -> a
