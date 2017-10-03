@@ -46,6 +46,8 @@ main =
         it "commutative" . property $ isCommut @(Average Rational) (^+^)
         it "left identity" . property $ leftId @(Average Rational) (^+^) zeroV
         it "right identity" . property $ rightId @(Average Rational) (^+^) zeroV
+        it "left inverse" . property $ \(a :: Average Rational) -> negateV a ^+^ a =-= zeroV
+        it "right inverse" . property $ \(a :: Average Rational) -> a ^+^ negateV a =-= zeroV
         describe "closure" $ do
           it "distributive: c u v" . property $ \(c, u, v :: Average Rational) ->
             c *^ (u ^+^ v) =-= (c *^ u) ^+^ (c *^ v)
