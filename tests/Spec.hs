@@ -14,7 +14,7 @@ import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes (monoid)
 
 getAverage = average
-pureA = pure
+-- pureA = pure
 
 instance Arbitrary (Average Rational) where
   arbitrary = pureA <$> arbitrary

@@ -1,7 +1,8 @@
 
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveFunctor #-}
+{-# LANGUAGE StandaloneDeriving, ScopedTypeVariables, ViewPatterns #-}
 
 ------------------------------------------------------------------------------------
 -- |
@@ -19,6 +20,7 @@
 
 module Data.Monoid.Average (
     Average(..),
+    pureA,
     average,
     maybeAverage
   ) where
@@ -27,12 +29,17 @@ import Prelude hiding ((**))
 
 import Data.Typeable
 import Data.Maybe
-import Data.Semigroup
+import Data.Semigroup hiding (Sum)
 import Data.AdditiveGroup
 import Data.VectorSpace
 import Data.AffineSpace
 import Control.Monad
 import Control.Applicative
+import Data.Functor.Identity
+-- import Data.Functor.Representable
+import Control.Monad.Writer hiding (Sum)
+import Data.Coerce
+
 
 -- |
 -- A monoid for 'Average' values.
@@ -48,14 +55,47 @@ import Control.Applicative
 -- >>> toRational $ mconcat [1,2::Product Rational]
 -- 2 % 1
 --
-newtype Average a = Average { getAverage :: [a] }
-  deriving (Show, Semigroup, Monoid, Typeable, Functor, Applicative)
+newtype Average a = Average { getAverage :: (a, a) }
+  deriving (Show, Typeable, Functor)
+instance (Fractional a, Num a) => Monoid (Average a) where
+  mempty = Average(0,0)
+  (Average (a,wa)) `mappend` (Average (b,wb)) = Average(a + b, wa+wb)
 
-instance (Fractional a, Eq a) => Eq (Average a) where
-  a == b = average a == average b
 
-instance (Fractional a, Ord a) => Ord (Average a) where
-  a `compare` b = average a `compare` average b
+pureA x = Average (x,1)
+
+-- Writer (Sum Double) a -- doesn't work as
+    -- mempty = (0,Weight 0) GOOD
+    -- pure x = (x,Weight 0) BAD        -- actually OK
+-- V2 a
+    -- mempty = (0,0) GOOD
+    -- pure x = (x,x) BAD               -- actually OK too
+
+-- deriving instance Monoid (Average a)
+-- deriving instance Num a => Num (Average a)
+-- deriving instance Fractional a => Fractional (Average a)
+-- deriving instance Real a => Real (Average a)
+-- deriving instance Floating a => Floating (Average a)
+-- deriving instance AdditiveGroup a => AdditiveGroup (Average a)
+
+-- instance (Num w, Num a, f ~ Identity) => Num (WriterT w f a)
+-- instance (Fractional w, Fractional a, f ~ Identity) => Fractional (WriterT w f a)
+-- instance (Real w, Real a, f ~ Identity) => Real (WriterT w f a)
+-- instance (Floating w, Floating a, f ~ Identity) => Floating (WriterT w f a)
+-- instance (AdditiveGroup w, AdditiveGroup a, f ~ Identity) => AdditiveGroup (WriterT w f a)
+
+
+-- , VectorSpace, AffineSpace
+
+-- instance Num a => Monoid (Average a) where
+--   mempty = coerce ((0 :: a),(1::Double))
+--   mappend (coerce -> (a::a,as::Double)) (coerce -> (b::a,bs::Double)) = coerce (a+b,as+bs)
+--
+-- instance (Fractional a, Eq a) => Eq (Average a) where
+--   a == b = average a == average b
+--
+-- instance (Fractional a, Ord a) => Ord (Average a) where
+--   a `compare` b = average a `compare` average b
 
 -- What should (+) and (*) do for Average values?
 --
@@ -74,52 +114,52 @@ instance (Fractional a, Ord a) => Ord (Average a) where
 -- (-10) % 3
 --
 
-instance Num a => Num (Average a) where
-  (+) = liftA2 (+)
-  (*) = liftA2 (*)
-  negate = fmap negate
-  abs    = fmap abs
-  signum = fmap signum
-  fromInteger = pure . fromInteger
+instance (VectorSpace a, Num a, Fractional a, Eq a) => Num (Average a) where
+  (+) = mappend
+  s * v = average s *^ v
+  negate = negateV
+  -- abs    = fmap abs
+  -- signum = fmap signum
+  fromInteger = pureA . fromInteger
 
-instance (Fractional a, Num a) => Fractional (Average a) where
-  (/) = liftA2 (/)
-  fromRational = pure . fromRational
+instance (VectorSpace a, Num a, Fractional a, Eq a) => Fractional (Average a) where
+  v / s = v ^/ average s
+  fromRational = pureA . fromRational
+--
+-- instance (Real a, Fractional a) => Real (Average a) where
+--   toRational = toRational . average
+--
+-- instance Floating a => Floating (Average a) where
+--   pi = pure pi
+--   exp = fmap exp
+--   sqrt = fmap sqrt
+--   log = fmap log
+--   sin = fmap sin
+--   tan = fmap tan
+--   cos = fmap cos
+--   asin = fmap asin
+--   atan = fmap atan
+--   acos = fmap acos
+--   sinh = fmap sinh
+--   tanh = fmap tanh
+--   cosh = fmap cosh
+--   asinh = fmap asinh
+--   atanh = fmap atanh
+--   acosh = fmap acosh
 
-instance (Real a, Fractional a) => Real (Average a) where
-  toRational = toRational . average
+instance (Fractional a, AdditiveGroup a, VectorSpace a) => AdditiveGroup (Average a) where
+  zeroV = mempty
+  (^+^) = mappend
+  negateV v = (-1) *^ v
 
-instance Floating a => Floating (Average a) where
-  pi = pure pi
-  exp = fmap exp
-  sqrt = fmap sqrt
-  log = fmap log
-  sin = fmap sin
-  tan = fmap tan
-  cos = fmap cos
-  asin = fmap asin
-  atan = fmap atan
-  acos = fmap acos
-  sinh = fmap sinh
-  tanh = fmap tanh
-  cosh = fmap cosh
-  asinh = fmap asinh
-  atanh = fmap atanh
-  acosh = fmap acosh
+instance (Fractional a, VectorSpace a) => VectorSpace (Average a) where
+  type Scalar (Average a) = a
+  s *^ (Average (a,aw)) = (Average (s*a,s*aw))
 
-instance AdditiveGroup a => AdditiveGroup (Average a) where
-  zeroV = pure zeroV
-  (^+^) = liftA2 (^+^)
-  negateV = fmap negateV
-
-instance VectorSpace a => VectorSpace (Average a) where
-  type Scalar (Average a) = Scalar a
-  s *^ v = liftA2 (*^) (pure s) v
-
-instance AffineSpace a => AffineSpace (Average a) where
-  type Diff (Average a) = Average (Diff a)
-  p1 .-. p2 = liftA2 (.-.) p1 p2
-  p .+^ v   = liftA2 (.+^) p v
+-- instance (AdditiveGroup a, Scalar a ~ Average a, Fractional a, AffineSpace a) => AffineSpace (Average a) where
+--   type Diff (Average a) = Average a
+--   p1 .-. p2 = p1 ^-^ p2
+--   p .+^ v   = p + v
 
 {-
 instance Arbitrary a => Arbitrary (Average a) where
@@ -127,10 +167,12 @@ instance Arbitrary a => Arbitrary (Average a) where
 -}
 
 -- | Return the average of all monoidal components. If given 'mempty', return zero.
-average :: Fractional a => Average a -> a
+average :: (Eq a, Fractional a) => Average a -> a
 average = fromMaybe 0 . maybeAverage
 
 -- | Return the average of all monoidal components. If given 'mempty', return 'Nothing'.
-maybeAverage :: Fractional a => Average a -> Maybe a
-maybeAverage (Average []) = Nothing
-maybeAverage (Average xs) = Just $ sum xs / fromIntegral (length xs)
+maybeAverage :: (Eq a, Fractional a) => Average a -> Maybe a
+maybeAverage (Average (a,0)) = Nothing
+maybeAverage (Average (a,b)) = Just (a / b)
+-- maybeAverage (Average []) = Nothing
+-- maybeAverage (Average xs) = Just $ sum xs / fromIntegral (length xs)
