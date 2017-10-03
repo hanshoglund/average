@@ -21,9 +21,7 @@ instance Arbitrary (Average (Rational -> Rational)) where
   arbitrary = Average <$> arbitrary
 
 instance EqProp (Average Rational) where
-  x =-= y
-     = (getAverage x==getAverage y) =-= True
-          -- for some reason, checkers <0.5 doesn't support `Rational` or even `Integer`.
+  Average l =-= Average m = (l==m) =-= True
 
 main :: IO ()
 main =
